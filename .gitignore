@@ -1,0 +1,6 @@
+kubectl-convert
+kubectl-convert.sha256
+PKCS12/
+.vscode/
+bin/
+obj/
