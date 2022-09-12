@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 // For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
 builder.WebHost.ConfigureKestrel(options => {
     // Setup a HTTP/2 endpoint without TLS.
-    options.ListenLocalhost(5001, o => {
+    options.ListenLocalhost(5003, o => {
         o.Protocols = HttpProtocols.Http2;
         o.UseHttps(fileName: "grpc-demo.pfx", password: "demo-grpc");
     });
