@@ -4,22 +4,19 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddGrpc();
-
-builder.WebHost.ConfigureKestrel(options => {
+builder.WebHost.UseKestrel(options => {
     // add certificate
     var cert = new X509Certificate2(@"./grpc-demo.pfx", "demo-grpc");
-    options.ConfigureHttpsDefaults(h => {
-        h.ClientCertificateMode = Microsoft.AspNetCore.Server.Kestrel.Https.ClientCertificateMode.AllowCertificate;
-        h.CheckCertificateRevocation = false;
-        h.ServerCertificate = cert;
+    options.ConfigureHttpsDefaults(con => {
+        con.ClientCertificateMode = Microsoft.AspNetCore.Server.Kestrel.Https.ClientCertificateMode.RequireCertificate;
+        con.ClientCertificateValidation = (certificate, chain, errors) =>
+            certificate.Issuer == cert.Issuer;
     });
     // Setup a HTTP/2 endpoint without TLS.
     options.ListenLocalhost(5050, o => o.Protocols = HttpProtocols.Http2);
 });
 
-
+builder.Services.AddGrpc(); // must create after Kestrel config
 
 var app = builder.Build();
 

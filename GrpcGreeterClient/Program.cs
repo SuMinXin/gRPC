@@ -5,16 +5,15 @@ using GrpcGreeterClient;
 // without certificate
 // var channel = GrpcChannel.ForAddress("https://localhost:5050/");
 
-
 // Assume path to a client .pfx file 
 var cert = new X509Certificate2(@"grpc-demo.pfx", "demo-grpc");
+
 var handler = new HttpClientHandler();
 handler.ClientCertificates.Add(cert);
-handler.ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
-handler.SslProtocols = System.Security.Authentication.SslProtocols.Tls12;
 var httpClient = new HttpClient(handler);
 
-var channel = GrpcChannel.ForAddress("https://localhost:5050/", new GrpcChannelOptions {
+AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
+var channel = GrpcChannel.ForAddress("http://localhost:5050/", new GrpcChannelOptions {
     HttpClient = httpClient
 });
 
