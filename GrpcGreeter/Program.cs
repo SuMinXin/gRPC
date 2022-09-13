@@ -1,38 +1,27 @@
+using System.Security.Cryptography.X509Certificates;
 using GrpcGreeter.Services;
-using Microsoft.AspNetCore.Authentication.Certificate;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Additional configuration is required to successfully run gRPC on macOS.
-// For instructions on how to configure Kestrel and gRPC clients on macOS, visit https://go.microsoft.com/fwlink/?linkid=2099682
-builder.WebHost.ConfigureKestrel(options => {
-    // Setup a HTTP/2 endpoint without TLS.
-    options.ListenLocalhost(5003, o => {
-        o.Protocols = HttpProtocols.Http2;
-        o.UseHttps(fileName: "grpc-demo.pfx", password: "demo-grpc");
-    });
-});
-
-// http
-//builder.WebHost.ConfigureKestrel(options => {
-//    // Setup a HTTP/2 endpoint without TLS.
-//    options.ListenLocalhost(5000,
-//    o => o.Protocols = HttpProtocols.Http2);
-//});
-
 // Add services to the container.
 builder.Services.AddGrpc();
-builder.Services
-    .AddAuthentication(CertificateAuthenticationDefaults.AuthenticationScheme)
-    .AddCertificate(options => {
-        options.AllowedCertificateTypes = CertificateTypes.SelfSigned;
-    });
-//AuthenticationOptions
-//CertificateTypes
-var app = builder.Build();
 
-app.UseAuthentication();
+builder.WebHost.ConfigureKestrel(options => {
+    // add certificate
+    var cert = new X509Certificate2(@"./grpc-demo.pfx", "demo-grpc");
+    options.ConfigureHttpsDefaults(h => {
+        h.ClientCertificateMode = Microsoft.AspNetCore.Server.Kestrel.Https.ClientCertificateMode.AllowCertificate;
+        h.CheckCertificateRevocation = false;
+        h.ServerCertificate = cert;
+    });
+    // Setup a HTTP/2 endpoint without TLS.
+    options.ListenLocalhost(5050, o => o.Protocols = HttpProtocols.Http2);
+});
+
+
+
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.MapGrpcService<GreeterService>();
